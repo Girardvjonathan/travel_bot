@@ -28,7 +28,7 @@ Array.prototype.getByProps = function (obj) {
 function dbRead() {
     db.all("SELECT * from user_redirect", function (err, rows) {
         user_in_vacation = rows;
-        //console.log(user_in_vacation);
+        console.log(user_in_vacation);
     });
 }
 
@@ -63,9 +63,9 @@ function verifyMention(data) {
         channel = channels.getByProps({id: data.channel});
         post_user = data.user;
         //if user is in db user_redirect user column then ...
-        console.log('user_to' + user_to);
+        //console.log('user_to' + user_to);
         vacation_user = user_in_vacation.getByProps({user: user_to});
-        console.log("user_in_vacation" + vacation_user.name);
+        //console.log("user_in_vacation" + vacation_user[0].name);
         if (vacation_user.length > 0) {
             //post @userTo User.name is in vacation maybe @UserTo.name can respond to you
             message = 'Sorry ' + users.getByProps({id: vacation_user[0].user})[0].name + " is on vacation.";
@@ -95,6 +95,7 @@ function apiTravel(data) {
             }
             else if (textArr[1] == 'over') {
                 removeRedirect(data.user);
+                bot.postMessageToUser(users.getByProps({id: data.user})[0].name, "You are no longer on vacation");
             }
             else {
                 if (textArr[1].indexOf('@') > -1) {
@@ -105,7 +106,8 @@ function apiTravel(data) {
                 }
                 //console.log("name" + user_to.name);
             }
-            bot.postMessageToUser(users.getByProps({id: data.user})[0].name, "You are travelling and <@" + user_to.id + "> is responding for you.");
+            bot.postMessageToUser(users.getByProps({id: data.user})[0].name, "You are on vacation and <@" + user_to.id +
+                "> is responding for you. Have fun!");
             //db.run("INSERT INTO user_redirect VALUES (" + data.user + "," + user_to.id + ")");
             addRedirect(data.user, user_to.id);
             dbRead();
@@ -117,8 +119,9 @@ function apiTravel(data) {
 }
 
 function getEmployeeOnVacation(data) {
-    var message;
+    var message= "No user on vacation ";
     var channel = channels.getByProps({id: data.channel})[0];
+    console.log(user_in_vacation);
     if (user_in_vacation.length > 0) {
         message = "Theses users are on vacation: ";
     }
