@@ -66,8 +66,8 @@ function verifyMention(data) {
             message = 'Sorry ' + users.getByProps({id: vacation_user[0].user})[0].name + " is on vacation.";
 
             if (vacation_user[0].user_to != "nobody") {
-                message += " Maybe @"
-                    + users.getByProps({id: vacation_user[0].user_to})[0].name + ": can respond to you."
+                message += " Maybe <@"
+                    + users.getByProps({id: vacation_user[0].user_to})[0].id + "> can respond to you."
             }
             bot.postMessageToChannel(channel[0].name, message);
         }
@@ -96,7 +96,7 @@ function apiTravel(data) {
                 }
                 //console.log("name" + user_to.name);
             }
-            bot.postMessageToUser(users.getByProps({id: data.user})[0].name, "You are travelling and " + user_to.name + " is responding for you.");
+            bot.postMessageToUser(users.getByProps({id: data.user})[0].name, "You are travelling and <@" + user_to.id + "> is responding for you.");
             //db.run("INSERT INTO user_redirect VALUES (" + data.user + "," + user_to.id + ")");
             addRedirect(data.user, user_to.id);
             dbRead();
@@ -110,12 +110,15 @@ function apiTravel(data) {
 bot.on('message', function (data) {
     // all ingoing events https://api.slack.com/rtm
     //console.log(data.type);
+
     if (data.type == 'message') {
         //console.log(data);
 
         // Check if a mention has been made if so, if the user is on vacation
         //console.log(data);
         verifyMention(data);
+        //channel = channels.getByProps({id: data.channel});
+        //bot.postMessageToChannel(channel[0].name, "<@U104MN0H1> message");
         apiTravel(data);
     }
 });
