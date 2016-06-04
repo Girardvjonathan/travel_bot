@@ -25,13 +25,18 @@ Array.prototype.getByProps = function (obj) {
     });
 };
 
+function dbRead(){
+    db.all("SELECT * from user_redirect", function (err, rows) {
+        //console.log(rows);
+        vacation_users = rows;
+        console.log(vacation_users);
+    });
+}
+
 var bot = new Bot(settings);
 bot.on('start', function () {
     db.run("CREATE TABLE if not exists user_redirect (user TEXT, user_to TEXT)");
-    db.all("SELECT * from user_redirect", function (err, rows) {
-        //console.log(rows);
-        vacation_users = rows
-    });
+    dbRead();
     //addRedirect();
     bot.getChannels().then(function (data) {
         channels = data.channels;
@@ -47,19 +52,21 @@ bot.on('start', function () {
 });
 
 function addRedirect(user, userTo) {
-    db.run("INSERT INTO user_redirect VALUES (" + user + "," + userTo + ")");
+    db.run("INSERT INTO user_redirect VALUES ('"+ user + "','" + userTo + "')");
     //stmt.finalize();
 }
 
 function verifyMention(data) {
     text = data.text;
     if (text.indexOf("@") > -1) {
-        content = text.substr(text.indexOf(' ') + 1, text.length);
-        user_to = text.substr(text.indexOf("@") + 1, text.indexOf(">") - 2);
+        //content = text.substring(text.indexOf(' ') + 1, text.length);
+        user_to = text.substring(text.indexOf("@") + 1, text.indexOf(">"));
         channel = channels.getByProps({id: data.channel});
         post_user = data.user;
         //if user is in db user_redirect user column then ...
+        console.log('user_to'+user_to);
         vacation_user = vacation_users.getByProps({user: user_to});
+        console.log("vacation_users"+vacation_user.name);
         if (vacation_user.length > 0) {
             //console.log();
             //post @userTo User.name is in vacation maybe @UserTo.name can respond to you
@@ -73,21 +80,43 @@ function verifyMention(data) {
     }
 }
 
-function isPrivate(channel){
-    return channels.getByProps({id: channel}).length ==0;
+function isPrivate(channel) {
+    return channels.getByProps({id: channel}).length == 0;
 }
+
 function apiTravel(data) {
-    console.log('hello' );
+    console.log('hello');
     // First check if its a private channel
     text = data.text;
+    var user_to;
     if (isPrivate(data.channel)) {
         var textArr = text.split(" ");
+        console.log(textArr);
         try {
-            if (textArr[0] == 'travel') {
-                bot.postMessageToUser(users.getByProps({id: data.user})[0].name, "You are travelling and "+textArr[1] +" is responding for you.");
+            if (textArr[1] == 'undefined') {
+                user_to = 'nobody'
+            } else {
+                if (textArr[1].indexOf('@') > -1) {
+                    console.log("name" + textArr[1]);
 
+                    textArr[1] = textArr[1].substring(textArr[1].indexOf('@') + 1, textArr[1].length - 1);
+                    user_to = users.getByProps({id: textArr[1]})[0];
+                    console.log("user_to" + user_to);
+
+                } else {
+                    user_to = users.getByProps({name: textArr[1]})[0];
+
+                }
+                console.log("name" + user_to.name);
             }
-        } catch (err){
+            bot.postMessageToUser(users.getByProps({id: data.user})[0].name, "You are travelling and " + user_to.name + " is responding for you.");
+            //db.run("INSERT INTO user_redirect VALUES (" + data.user + "," + user_to.id + ")");
+            addRedirect(data.user, user_to.id);
+            dbRead();
+
+        }
+        catch
+            (err) {
 
         }
 
@@ -100,6 +129,7 @@ bot.on('message', function (data) {
     if (data.type == 'message') {
         //console.log(data);
         // Check if a mention has been made if so, if the user is on vacation
+        console.log(data);
         verifyMention(data);
         apiTravel(data);
 
