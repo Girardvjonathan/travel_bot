@@ -2,29 +2,8 @@
  * Created by john on 6/4/16.
  * Collaborators : kimsl
  */
-var express = require('express');
-var bodyParser = require('body-parser');
 var getphoto = require('./getphoto.js');
 var Bot = require('slackbots');
-
-var app = express();
-var port = process.env.PORT || 3000;
-app.use(bodyParser.urlencoded({ extended: true }));
-app.get('/', function (req, res) { res.status(200).send('Hello world!') });
-
-getphoto.search("iceland", function(result) {
-    console.log(result);
-});
-
-// error handler
-app.use(function (err, req, res, next) {
-    console.error(err.stack);
-    res.status(400).send(err.message);
-});
-
-app.listen(port, function () {
-    console.log('Slack bot listening on port ' + port);
-});
 
 // create a bot
 var settings = {
@@ -32,6 +11,33 @@ var settings = {
     name: 'travel_bot'
 };
 var bot = new Bot(settings);
+
+var vacayEndDate = 2018;
+var destination = "new zealand";
+var vacayMessage = 'Someone is on vacation until ' + vacayEndDate + '.';
+var messageParams = {};
+if(destination) {
+    getphoto.search(destination, function(result) {
+        if(result) {
+            messageParams.attachments = [
+                {
+                    "color": "#1CC6FF",
+                    "title": result.pageUrl,
+                    "title_link": result.pageUrl,
+                    "image_url": result.imageUrl
+                }
+            ];
+        }
+        destination = destination.toLowerCase().replace(/\b[a-z]/g, function(letter) {
+            return letter.toUpperCase();
+        });
+        vacayMessage = 'Someone is on vacation until ' + vacayEndDate + ' in ' + destination + '.';
+        bot.postMessageToChannel('random', vacayMessage, messageParams);
+    });
+}
+else {
+    bot.postMessageToChannel('random', vacayMessage, messageParams);
+}
 
 bot.on('start', function() {
     //bot.postMessageToGroup('some-private-group', 'hello group chat!');
