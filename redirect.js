@@ -34,7 +34,7 @@ function dbRead() {
 
 var bot = new Bot(settings);
 bot.on('start', function () {
-    db.run("CREATE TABLE if not exists user_redirect (user TEXT, user_to TEXT)");
+    db.run("CREATE TABLE if not exists user_redirect (user TEXT PRIMARY KEY ASC, user_to TEXT)");
     dbRead();
     //addRedirect();
     bot.getChannels().then(function (data) {
@@ -48,7 +48,8 @@ bot.on('start', function () {
 });
 
 function addRedirect(user, userTo) {
-    db.run("INSERT INTO user_redirect VALUES ('" + user + "','" + userTo + "')");
+    db.run("INSERT OR REPLACE INTO user_redirect(user, user_to) " +
+        "VALUES ('" + user + "', '" + userTo + "')");
 }
 
 function removeRedirect(user) {
@@ -91,23 +92,24 @@ function apiTravel(data) {
     if (isPrivate(data.channel)) {
         var textArr = text.split(" ");
         try {
-            if (textArr[1] == 'undefined') {
-                user_to = 'nobody';
-            }
-            else if (textArr[1] == 'over') {
-                removeRedirect(data.user);
-                confirmationMessage = "You are no longer on vacation. Welcome back!";
+            if(textArr[1])
+            {
+                if (textArr[1] == 'over') {
+                    removeRedirect(data.user);
+                    confirmationMessage = "You are no longer on vacation. Welcome back!";
+                }
+                else if (textArr[1].indexOf('@') > -1) {
+                    textArr[1] = textArr[1].substring(textArr[1].indexOf('@') + 1, textArr[1].length - 1);
+                    user_to = users.getByProps({id: textArr[1]})[0].id;
+                    confirmationMessage = "You are on vacation and <@" + user_to.id +
+                        "> is responding for you. Have fun!";
+                    addRedirect(data.user, user_to);
+                }
             }
             else {
-                if (textArr[1].indexOf('@') > -1) {
-                    textArr[1] = textArr[1].substring(textArr[1].indexOf('@') + 1, textArr[1].length - 1);
-                    user_to = users.getByProps({id: textArr[1]})[0];
-                } else {
-                    user_to = users.getByProps({name: textArr[1]})[0];
-                }
-                confirmationMessage = "You are on vacation and <@" + user_to.id +
-                    "> is answering for you. Have fun!";
-                addRedirect(data.user, user_to.id);
+                user_to = null;
+                confirmationMessage = "You are on vacation. Have fun!";
+                addRedirect(data.user, user_to);
             }
             bot.postMessageToUser(users.getByProps({id: data.user})[0].name, confirmationMessage);
             dbRead();
