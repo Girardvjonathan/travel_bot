@@ -15,5 +15,8 @@
   "bugs": {
     "url": "https://github.com/Girardvjonathan/travel_bot/issues"
   },
-  "homepage": "https://github.com/Girardvjonathan/travel_bot#readme"
+  "homepage": "https://github.com/Girardvjonathan/travel_bot#readme",
+  "devDependencies": {
+    "slackbots": "^0.5.1"
+  }
 }
