@@ -28,7 +28,7 @@ Array.prototype.getByProps = function (obj) {
 function dbRead() {
     db.all("SELECT * from user_redirect", function (err, rows) {
         user_in_vacation = rows;
-        console.log(user_in_vacation);
+        //console.log(user_in_vacation);
     });
 }
 
@@ -106,7 +106,7 @@ function apiTravel(data) {
                     user_to = users.getByProps({name: textArr[1]})[0];
                 }
                 confirmationMessage = "You are on vacation and <@" + user_to.id +
-                    "> is responding for you. Have fun!";
+                    "> is answering for you. Have fun!";
                 addRedirect(data.user, user_to.id);
             }
             bot.postMessageToUser(users.getByProps({id: data.user})[0].name, confirmationMessage);
@@ -119,18 +119,18 @@ function apiTravel(data) {
 }
 
 function getEmployeeOnVacation(data) {
-    var message= "No user on vacation ";
+    var message = "No user on vacation ";
     var channel = channels.getByProps({id: data.channel})[0];
     console.log(user_in_vacation);
     if (user_in_vacation.length > 0) {
         message = "Theses users are on vacation: ";
+        user_in_vacation.forEach(function (entry) {
+            if (entry != 'undefined') {
+                user = users.getByProps({id: entry.user})[0].name;
+                message += " " + user + ",";
+            }
+        });
     }
-    user_in_vacation.forEach(function (entry) {
-        if (entry != 'undefined') {
-            user = users.getByProps({id: entry.user})[0].name;
-            message += " " + user + ",";
-        }
-    });
     //    TODO si date marquer until date
     bot.postMessageToChannel(channel.name, message.substring(0, message.length - 1));
 
