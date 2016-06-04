@@ -22,3 +22,6 @@ Talk to the bot on private discussion to activate or deactivate travel mode
 it will display a message with the message:
 
 ```YourName is on vacation maybe @JohnSnow can respond to you```
+### Current Issue
+* Sql injection
+* Infinite loop when two person in vacation set the other has fallback
