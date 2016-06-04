@@ -88,33 +88,32 @@ function apiTravel(data) {
     text = data.text;
     var user_to;
     var confirmationMessage;
-    if (isPrivate(data.channel)) {
-        var textArr = text.split(" ");
-        try {
-            if (textArr[1] == 'undefined') {
-                user_to = 'nobody';
-            }
-            else if (textArr[1] == 'over') {
-                removeRedirect(data.user);
-                confirmationMessage = "You are no longer on vacation. Welcome back!";
-            }
-            else {
-                if (textArr[1].indexOf('@') > -1) {
-                    textArr[1] = textArr[1].substring(textArr[1].indexOf('@') + 1, textArr[1].length - 1);
-                    user_to = users.getByProps({id: textArr[1]})[0];
-                } else {
-                    user_to = users.getByProps({name: textArr[1]})[0];
-                }
-                confirmationMessage = "You are on vacation and <@" + user_to.id +
-                    "> is answering for you. Have fun!";
-                addRedirect(data.user, user_to.id);
-            }
-            bot.postMessageToUser(users.getByProps({id: data.user})[0].name, confirmationMessage);
-            dbRead();
+
+    var textArr = text.split(" ");
+    try {
+        if (textArr[1] == 'undefined') {
+            user_to = 'nobody';
         }
-        catch
-            (err) {
+        else if (textArr[1] == 'over') {
+            removeRedirect(data.user);
+            confirmationMessage = "You are no longer on vacation. Welcome back!";
         }
+        else {
+            if (textArr[1].indexOf('@') > -1) {
+                textArr[1] = textArr[1].substring(textArr[1].indexOf('@') + 1, textArr[1].length - 1);
+                user_to = users.getByProps({id: textArr[1]})[0];
+            } else {
+                user_to = users.getByProps({name: textArr[1]})[0];
+            }
+            confirmationMessage = "You are on vacation and <@" + user_to.id +
+                "> is answering for you. Have fun!";
+            addRedirect(data.user, user_to.id);
+        }
+        bot.postMessageToUser(users.getByProps({id: data.user})[0].name, confirmationMessage);
+        dbRead();
+    }
+    catch
+        (err) {
     }
 }
 
@@ -136,6 +135,14 @@ function getEmployeeOnVacation(data) {
 
 }
 
+function helpInfo(data) {
+    message = "*Help and documentation* \nTo go in *vacation* mode write :\n>vacation \n>[optional @NameOfAnswerer " +
+        "in your absence you can set someone to be notify when somebody mention you]\nExemple: \n>vacation @JohnSnow" +
+        "\nTo *quit vacation* mode write : \n>vacation over" +
+        "\n To see who is on vacation: \n>who is on vacation \n>?vacation";
+    bot.postMessageToUser(users.getByProps({id: data.user})[0].name, message);
+}
+
 bot.on('message', function (data) {
     // all ingoing events https://api.slack.com/rtm
     //console.log(data.type);
@@ -147,8 +154,16 @@ bot.on('message', function (data) {
         //console.log(data);
         verifyMention(data);
         var textArr = data.text.split(" ");
+        if (textArr[0].toLowerCase() === 'help' ||
+            (textArr[0].toLowerCase() === 'vacation' && textArr[1].toLowerCase() === 'help')) {
+            if (isPrivate(data.channel)) {
+                helpInfo(data);
+            }
+        }
         if (textArr[0].toLowerCase() === 'vacation') {
-            apiTravel(data);
+            if (isPrivate(data.channel)) {
+                apiTravel(data);
+            }
         }
         if (textArr[0].toLowerCase() === '?vacation' ||
             (textArr[0].toLowerCase() === 'who' && textArr[1].toLowerCase() === 'is' &&
