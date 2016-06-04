@@ -51,6 +51,10 @@ function addRedirect(user, userTo) {
     db.run("INSERT INTO user_redirect VALUES ('" + user + "','" + userTo + "')");
 }
 
+function removeRedirect(user) {
+    db.run("DELETE FROM user_redirect WHERE user='" + user + "'")
+}
+
 function verifyMention(data) {
     text = data.text;
     if (text.indexOf("@") > -1) {
@@ -87,8 +91,12 @@ function apiTravel(data) {
         var textArr = text.split(" ");
         try {
             if (textArr[1] == 'undefined') {
-                user_to = 'nobody'
-            } else {
+                user_to = 'nobody';
+            }
+            else if (textArr[1] == 'over') {
+                removeRedirect(data.user);
+            }
+            else {
                 if (textArr[1].indexOf('@') > -1) {
                     textArr[1] = textArr[1].substring(textArr[1].indexOf('@') + 1, textArr[1].length - 1);
                     user_to = users.getByProps({id: textArr[1]})[0];
@@ -147,4 +155,3 @@ bot.on('message', function (data) {
         }
     }
 });
-

@@ -1,4 +1,4 @@
-# Slack travel bot
+# syov - Vacation Slack Bot
 
 ## A simple bot to notify on @mention that someone is on vacation
 ### Features
