@@ -7,7 +7,6 @@ var db = new sqlite3.Database('redirect.db');
 var check;
 
 
-// create a bot
 var settings = {
     token: 'xoxb-48208002487-TnZqostisHVuCgFoWyDP3nvS',
     name: 'travel_bot'
@@ -25,11 +24,10 @@ Array.prototype.getByProps = function (obj) {
     });
 };
 
-function dbRead(){
+function dbRead() {
     db.all("SELECT * from user_redirect", function (err, rows) {
-        //console.log(rows);
         vacation_users = rows;
-        console.log(vacation_users);
+        //console.log(vacation_users);
     });
 }
 
@@ -46,14 +44,10 @@ bot.on('start', function () {
         users = data.members;
         //console.log(users);
     });
-
-
-    //console.log(channels);
 });
 
 function addRedirect(user, userTo) {
-    db.run("INSERT INTO user_redirect VALUES ('"+ user + "','" + userTo + "')");
-    //stmt.finalize();
+    db.run("INSERT INTO user_redirect VALUES ('" + user + "','" + userTo + "')");
 }
 
 function verifyMention(data) {
@@ -64,18 +58,18 @@ function verifyMention(data) {
         channel = channels.getByProps({id: data.channel});
         post_user = data.user;
         //if user is in db user_redirect user column then ...
-        console.log('user_to'+user_to);
+        console.log('user_to' + user_to);
         vacation_user = vacation_users.getByProps({user: user_to});
-        console.log("vacation_users"+vacation_user.name);
+        console.log("vacation_users" + vacation_user.name);
         if (vacation_user.length > 0) {
-            //console.log();
             //post @userTo User.name is in vacation maybe @UserTo.name can respond to you
-            //params = {
-            //    link_name: vacation_user[0].user_to,
-            //    as_user: true
-            //};
-            bot.postMessageToChannel(channel[0].name, 'Sorry ' + users.getByProps({id: vacation_user[0].user})[0].name + " is on vacation. Maybe @"
-                + users.getByProps({id: vacation_user[0].user_to})[0].name + ": can respond to you");
+            message = 'Sorry ' + users.getByProps({id: vacation_user[0].user})[0].name + " is on vacation.";
+
+            if (vacation_user[0].user_to != "nobody") {
+                message += " Maybe @"
+                    + users.getByProps({id: vacation_user[0].user_to})[0].name + ": can respond to you."
+            }
+            bot.postMessageToChannel(channel[0].name, message);
         }
     }
 }
@@ -85,41 +79,31 @@ function isPrivate(channel) {
 }
 
 function apiTravel(data) {
-    console.log('hello');
     // First check if its a private channel
     text = data.text;
     var user_to;
     if (isPrivate(data.channel)) {
         var textArr = text.split(" ");
-        console.log(textArr);
         try {
             if (textArr[1] == 'undefined') {
                 user_to = 'nobody'
             } else {
                 if (textArr[1].indexOf('@') > -1) {
-                    console.log("name" + textArr[1]);
-
                     textArr[1] = textArr[1].substring(textArr[1].indexOf('@') + 1, textArr[1].length - 1);
                     user_to = users.getByProps({id: textArr[1]})[0];
-                    console.log("user_to" + user_to);
-
                 } else {
                     user_to = users.getByProps({name: textArr[1]})[0];
-
                 }
-                console.log("name" + user_to.name);
+                //console.log("name" + user_to.name);
             }
             bot.postMessageToUser(users.getByProps({id: data.user})[0].name, "You are travelling and " + user_to.name + " is responding for you.");
             //db.run("INSERT INTO user_redirect VALUES (" + data.user + "," + user_to.id + ")");
             addRedirect(data.user, user_to.id);
             dbRead();
-
         }
         catch
             (err) {
-
         }
-
     }
 }
 
@@ -128,12 +112,11 @@ bot.on('message', function (data) {
     //console.log(data.type);
     if (data.type == 'message') {
         //console.log(data);
+
         // Check if a mention has been made if so, if the user is on vacation
-        console.log(data);
+        //console.log(data);
         verifyMention(data);
         apiTravel(data);
-
     }
-
 });
 
