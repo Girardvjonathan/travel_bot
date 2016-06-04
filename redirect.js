@@ -2,6 +2,10 @@
  * Created by john on 6/4/16.
  */
 var Bot = require('slackbots');
+var sqlite3 = require('sqlite3').verbose();
+var db = new sqlite3.Database('redirect.db');
+var check;
+
 
 // create a bot
 var settings = {
@@ -10,9 +14,9 @@ var settings = {
 };
 var channels;
 var users;
-
+var vacation_users;
 //Exemple console.log( channels.getChannelById({id:'C1E6AUVK3'}));
-Array.prototype.getById = function(obj) {
+Array.prototype.getByProps = function(obj) {
     return this.filter(function(item) {
         for (var prop in obj)
             if (!(prop in item) || obj[prop] !== item[prop])
@@ -23,16 +27,28 @@ Array.prototype.getById = function(obj) {
 
 var bot = new Bot(settings);
 bot.on('start', function () {
+    db.run("CREATE TABLE if not exists user_redirect (user TEXT, user_to TEXT)");
+    db.all("SELECT * from user_redirect",function(err,rows){
+        //console.log(rows);
+        vacation_users = rows
+    });
+    //addRedirect();
     bot.getChannels().then(function (data) {
         channels = data.channels;
     });
     bot.getUsers().then(function (data) {
-        users = data.users;
+        users = data.members;
+        //console.log(users);
     });
 
 
     //console.log(channels);
 });
+
+function addRedirect(user, userTo){
+    db.run("INSERT INTO user_redirect VALUES ("+user+","+userTo+")");
+    //stmt.finalize();
+}
 
 bot.on('message', function (data) {
     // all ingoing events https://api.slack.com/rtm
@@ -41,22 +57,20 @@ bot.on('message', function (data) {
         //console.log("that a message");
         text = data.text;
         if (text.indexOf("@") > -1) {
-            console.log(data);
             content = text.substr(text.indexOf(' ') + 1, text.length);
-            user = text.substr(text.indexOf("@") + 1, text.indexOf(">") - 2);
-            //console.log(content);
-            //console.log(user);
-            //console.log('here');
-            //console.log(data.channel);
-            channel = channels.getById({id: data.channel});
-            //console.log(channel);
-            //console.log(channel[0].name);
-            // Get user who posted name
+            user_to = text.substr(text.indexOf("@") + 1, text.indexOf(">") - 2);
+            channel = channels.getByProps({id: data.channel});
             post_user = data.user;
-            console.log(user == 'U1E6402EB');
-            if (user == 'U1E6402EB') {
-                console.log('postingggggg'+ channel[0].name);
-                bot.postMessageToChannel(channel[0].name, 'You said to me : ' + content);
+            //if user is in db user_redirect user column then ...
+            vacation_user = vacation_users.getByProps({user: user_to});
+            if (vacation_user.length>0) {
+                //console.log();
+                //post @userTo User.name is in vacation maybe @UserTo.name can respond to you
+                params = {
+                    link_name: vacation_user[0].user_to
+                };
+                bot.postMessageToChannel(channel[0].name,'Sorry '+ users.getByProps({id:vacation_user[0].user})[0].name+" is on vacation. Maybe @"
+                    +users.getByProps({id:vacation_user[0].user_to})[0].name+ " can respond to you", params);
             }
         }
     }
