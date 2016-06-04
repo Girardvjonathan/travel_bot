@@ -87,6 +87,7 @@ function apiTravel(data) {
     // First check if its a private channel
     text = data.text;
     var user_to;
+    var confirmationMessage;
     if (isPrivate(data.channel)) {
         var textArr = text.split(" ");
         try {
@@ -95,7 +96,7 @@ function apiTravel(data) {
             }
             else if (textArr[1] == 'over') {
                 removeRedirect(data.user);
-                bot.postMessageToUser(users.getByProps({id: data.user})[0].name, "You are no longer on vacation");
+                confirmationMessage = "You are no longer on vacation. Welcome back!";
             }
             else {
                 if (textArr[1].indexOf('@') > -1) {
@@ -104,12 +105,11 @@ function apiTravel(data) {
                 } else {
                     user_to = users.getByProps({name: textArr[1]})[0];
                 }
-                //console.log("name" + user_to.name);
+                confirmationMessage = "You are on vacation and <@" + user_to.id +
+                    "> is responding for you. Have fun!";
+                addRedirect(data.user, user_to.id);
             }
-            bot.postMessageToUser(users.getByProps({id: data.user})[0].name, "You are on vacation and <@" + user_to.id +
-                "> is responding for you. Have fun!");
-            //db.run("INSERT INTO user_redirect VALUES (" + data.user + "," + user_to.id + ")");
-            addRedirect(data.user, user_to.id);
+            bot.postMessageToUser(users.getByProps({id: data.user})[0].name, confirmationMessage);
             dbRead();
         }
         catch
