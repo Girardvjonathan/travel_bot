@@ -35,7 +35,7 @@ bot.on('start', function () {
     //addRedirect();
     bot.getChannels().then(function (data) {
         channels = data.channels;
-        console.log(channels);
+        //console.log(channels);
     });
     bot.getUsers().then(function (data) {
         users = data.members;
@@ -73,18 +73,24 @@ function verifyMention(data) {
     }
 }
 
+function isPrivate(channel){
+    return channels.getByProps({id: channel}).length ==0;
+}
 function apiTravel(data) {
+    console.log('hello' );
     // First check if its a private channel
-    channel = channels.getByProps({id: data.channel});
-    if (channel.length > 0) {
+    text = data.text;
+    if (isPrivate(data.channel)) {
         var textArr = text.split(" ");
-        console.log(textArr);
+        try {
+            if (textArr[0] == 'travel') {
+                bot.postMessageToUser(users.getByProps({id: data.user})[0].name, "You are travelling and "+textArr[1] +" is responding for you.");
 
-        if (textArr[1] == 'travel') {
-            console.log('HEY');
-            console.log('user' + textArr[2]);
-            console.log('user_to' + textArr[3]);
+            }
+        } catch (err){
+
         }
+
     }
 }
 
@@ -92,7 +98,7 @@ bot.on('message', function (data) {
     // all ingoing events https://api.slack.com/rtm
     //console.log(data.type);
     if (data.type == 'message') {
-        console.log(data);
+        //console.log(data);
         // Check if a mention has been made if so, if the user is on vacation
         verifyMention(data);
         apiTravel(data);
