@@ -2,6 +2,7 @@
  * Created by john on 6/4/16.
  */
 var Bot = require('slackbots');
+var instaBot = require('./instabot')
 
 // create a bot
 var settings = {
