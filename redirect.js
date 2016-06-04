@@ -5,15 +5,16 @@ var Bot = require('slackbots');
 var sqlite3 = require('sqlite3').verbose();
 var db = new sqlite3.Database('redirect.db');
 var check;
-
+var channels;
+var users;
+var user_in_vacation;
 
 var settings = {
     token: 'xoxb-48208002487-TnZqostisHVuCgFoWyDP3nvS',
-    name: 'travel_bot'
+    name: 'syov'
 };
-var channels;
-var users;
-var vacation_users;
+
+
 //Exemple console.log( channels.getChannelById({id:'C1E6AUVK3'}));
 Array.prototype.getByProps = function (obj) {
     return this.filter(function (item) {
@@ -26,8 +27,8 @@ Array.prototype.getByProps = function (obj) {
 
 function dbRead() {
     db.all("SELECT * from user_redirect", function (err, rows) {
-        vacation_users = rows;
-        //console.log(vacation_users);
+        user_in_vacation = rows;
+        //console.log(user_in_vacation);
     });
 }
 
@@ -59,8 +60,8 @@ function verifyMention(data) {
         post_user = data.user;
         //if user is in db user_redirect user column then ...
         console.log('user_to' + user_to);
-        vacation_user = vacation_users.getByProps({user: user_to});
-        console.log("vacation_users" + vacation_user.name);
+        vacation_user = user_in_vacation.getByProps({user: user_to});
+        console.log("user_in_vacation" + vacation_user.name);
         if (vacation_user.length > 0) {
             //post @userTo User.name is in vacation maybe @UserTo.name can respond to you
             message = 'Sorry ' + users.getByProps({id: vacation_user[0].user})[0].name + " is on vacation.";
@@ -107,6 +108,23 @@ function apiTravel(data) {
     }
 }
 
+function getEmployeeOnVacation(data) {
+    var message;
+    var channel = channels.getByProps({id: data.channel})[0];
+    if (user_in_vacation.length > 0) {
+        message = "Theses users are on vacation: ";
+    }
+    user_in_vacation.forEach(function (entry) {
+        if (entry != 'undefined') {
+            user = users.getByProps({id: entry.user})[0].name;
+            message += " " + user + ",";
+        }
+    });
+    //    TODO si date marquer until date
+    bot.postMessageToChannel(channel.name, message.substring(0, message.length - 1));
+
+}
+
 bot.on('message', function (data) {
     // all ingoing events https://api.slack.com/rtm
     //console.log(data.type);
@@ -117,9 +135,16 @@ bot.on('message', function (data) {
         // Check if a mention has been made if so, if the user is on vacation
         //console.log(data);
         verifyMention(data);
-        //channel = channels.getByProps({id: data.channel});
-        //bot.postMessageToChannel(channel[0].name, "<@U104MN0H1> message");
-        apiTravel(data);
+        var textArr = data.text.split(" ");
+        if (textArr[0].toLowerCase() === 'vacation') {
+            apiTravel(data);
+        }
+        if (textArr[0].toLowerCase() === '?vacation' ||
+            (textArr[0].toLowerCase() === 'who' && textArr[1].toLowerCase() === 'is' &&
+            textArr[2].toLowerCase() === 'on'
+            && textArr[3].toLowerCase() === 'vacation')) {
+            getEmployeeOnVacation(data);
+        }
     }
 });
 
