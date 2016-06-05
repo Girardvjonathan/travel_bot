@@ -213,7 +213,9 @@ function getEmployeeOnVacation(data) {
 
 function helpInfo(data) {
     message = "*Help and documentation* \nTo go in *vacation* mode write :\n>vacation \n>[optional @NameOfAnswerer " +
-        "in your absence you can set someone to be notify when somebody mention you]\nExemple: \n>vacation @JohnSnow" +
+        "in your absence you can set someone to be notify when somebody mention you]\nExemple: vacation @JohnSnow" +
+        "\n\n>[optional -w Destination you can specify the destination you are going to and Syov will send a beautifull picture of it]\nExemple: vacation -w Iceland" +
+        "\n\n>[optional -d yyyy-mm-dd you can specify the returning date of your vacation and syov will show it to anyone who will be mentioning you in a conversation]\nExemple: vacation -d 2016-08-06\n"+
         "\nTo *quit vacation* mode write : \n>vacation over" +
         "\n To see who is on vacation: \n>who is on vacation \n>?vacation";
     bot.postMessageToUser(users.getByProps({id: data.user})[0].name, message);
