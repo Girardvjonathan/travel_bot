@@ -17,11 +17,19 @@ Talk to the bot on private discussion to activate or deactivate travel mode
 
 ```travel --help```
 
-### To set someone has fallback
-```travel @JohnSnow``` -- In this case John snow is the fallback so when people mention you @You
+### To go on vacation
+```vacation @JohnSnow``` -- In this case John snow is the fallback so when people mention you @You
 it will display a message with the message:
 
 ```YourName is on vacation maybe @JohnSnow can respond to you```
+### To
+
+### To see who is on vacation
+On every channel that the bot is part off, you can type
+```?vacation``` or ```Who is on vacation``` (not case sensitive)
+
+
 ### Current Issue
 * Sql injection
 * Infinite loop when two person in vacation set the other has fallback
+* More test if list are empty
