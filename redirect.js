@@ -3,7 +3,7 @@
  */
 var Bot = require('slackbots');
 var sqlite3 = require('sqlite3').verbose();
-var db = new sqlite3.Database('redirect.db');
+var db = new sqlite3.Database('vacation.db');
 var check;
 var channels;
 var users;
@@ -26,35 +26,33 @@ Array.prototype.getByProps = function (obj) {
 };
 
 function dbRead() {
-  db.all("SELECT * from user_redirect", function (err, rows) {
-    user_in_vacation = rows;
-    console.log(user_in_vacation);
-  });
+    db.all("SELECT * from user_vacation", function (err, rows) {
+        user_in_vacation = rows;
+        console.log(user_in_vacation);
+    });
 }
 
 var bot = new Bot(settings);
 bot.on('start', function () {
-  db.run("CREATE TABLE if not exists user_redirect (user TEXT PRIMARY KEY ASC, user_to TEXT, dest TEXT, date TEXT)");
-  dbRead();
-  //addRedirect();
-  bot.getChannels().then(function (data) {
-    channels = data.channels;
-    //console.log(channels);
-  });
-  bot.getUsers().then(function (data) {
-    users = data.members;
-    //console.log(users);
-  });
+    db.run("CREATE TABLE if not exists user_vacation (user TEXT PRIMARY KEY ASC, user_to TEXT, dest TEXT, date TEXT)");
+    dbRead();
+    //addVacation();
+    bot.getChannels().then(function (data) {
+        channels = data.channels;
+        //console.log(channels);
+    });
+    bot.getUsers().then(function (data) {
+        users = data.members;
+        //console.log(users);
+    });
 });
 
-function addRedirect(user, userTo, dest, date) {
-
-  console.log("SOMETHING!!!!!")
-  db.run("INSERT OR REPLACE INTO INTO user_redirect VALUES ('" + user + "','" + userTo + "','" + dest + "','"+ date +"')");
+function addVacation(user, userTo, dest, date) {
+    db.run("INSERT OR REPLACE INTO INTO user_vacation VALUES ('" + user + "','" + userTo + "','" + dest + "','" + date + "')");
 }
 
-function removeRedirect(user) {
-    db.run("DELETE FROM user_redirect WHERE user='" + user + "'")
+function removeVacation(user) {
+    db.run("DELETE FROM user_vacation WHERE user='" + user + "'")
 }
 
 function verifyMention(data) {
@@ -64,7 +62,7 @@ function verifyMention(data) {
         user_to = text.substring(text.indexOf("@") + 1, text.indexOf(">"));
         channel = channels.getByProps({id: data.channel});
         post_user = data.user;
-        //if user is in db user_redirect user column then ...
+        //if user is in db user_vacation user column then ...
         //console.log('user_to' + user_to);
         vacation_user = user_in_vacation.getByProps({user: user_to});
         //console.log("user_in_vacation" + vacation_user[0].name);
@@ -90,69 +88,60 @@ function apiTravel(data) {
     text = data.text;
     var user_to;
     var confirmationMessage;
-        var textArr = text.split(" ");
-        try {
-            if(textArr[1])
-            {
-                if (textArr[1] == 'over') {
-                    removeRedirect(data.user);
-                    confirmationMessage = "You are no longer on vacation. Welcome back!";
-                }
-                else if (textArr[1].indexOf('@') > -1) {
-                    textArr[1] = textArr[1].substring(textArr[1].indexOf('@') + 1, textArr[1].length - 1);
-                    user_to = users.getByProps({id: textArr[1]})[0].id;
-                    confirmationMessage = "You are on vacation and <@" + user_to.id +
-                        "> is responding for you. Have fun!";
-                    addRedirect(data.user, user_to);
-                }
+    var textArr = text.split(" ");
+    try {
+        var dest = findValue(textArr, "-w");
+        var date = findValue(textArr, "-d");
+        if (textArr[1]) {
+
+            if (textArr[1] == 'over') {
+                removeVacation(data.user);
+                confirmationMessage = "You are no longer on vacation. Welcome back!";
             }
-            else {
-                user_to = null;
-                confirmationMessage = "You are on vacation. Have fun!";
-                addRedirect(data.user, user_to);
+            else if (textArr[1].indexOf('@') > -1) {
+                textArr[1] = textArr[1].substring(textArr[1].indexOf('@') + 1, textArr[1].length - 1);
+                user_to = users.getByProps({id: textArr[1]})[0].id;
+                confirmationMessage = "You are on vacation and <@" + user_to.id +
+                    "> is responding for you. Have fun!";
+                addVacation(data.user, user_to.id, dest, new Date(date).toString());
             }
-            //TO VERIFY
-            var dest = findValue(textArr,"-w")
-      var date = findValue(textArr,"-d")
-      if (formatDate(date) || date == "undefined"){
-      console.log("DEST = " + dest)
-      bot.postMessageToUser(users.getByProps({id: data.user})[0].name, "You are on vacation and <@" + user_to.id +
-      "> is responding for you. Have fun!");
-      addRedirect(data.user, user_to.id, dest,new Date(date).toString());
-      dbRead();
-            //END
-            bot.postMessageToUser(users.getByProps({id: data.user})[0].name, confirmationMessage);
-            dbRead();
         }
-        catch
-            (err) {
+        else {
+            user_to = null;
+            confirmationMessage = "You are on vacation. Have fun!";
+            addVacation(data.user, user_to.id, dest, new Date(date).toString());
         }
+        dbRead();
+    }
+    catch
+        (err) {
+    }
 }
 
 
-function findValue(args,param){
+function findValue(args, param) {
 
-  var id = args.indexOf(param)
-  console.log("ID = " + id + " L = " + args.length)
-  if (id > -1 && args.length >= id+1){
-    console.log("ARGGGGG = " + args[id+1])
-    return args[id+1]
-  }
-  else {
-    return "undefined"
-  }
-}
-
-function formatDate(date){
-
-    date = date.replace("/","-")
-    var comp = date.split('-')
-
-    if (comp.length == 3 && comp[0].length == 4 && comp[1].length == 2 && comp[2].length == 2){
-      return true
+    var id = args.indexOf(param);
+    console.log("ID = " + id + " L = " + args.length);
+    if (id > -1 && args.length >= id + 1) {
+        console.log("ARGGGGG = " + args[id + 1]);
+        return args[id + 1]
     }
     else {
-      return false
+        return "undefined"
+    }
+}
+
+function formatDate(date) {
+
+    date = date.replace("/", "-");
+    var comp = date.split('-');
+
+    if (comp.length == 3 && comp[0].length == 4 && comp[1].length == 2 && comp[2].length == 2) {
+        return true
+    }
+    else {
+        return false
     }
 
 }
