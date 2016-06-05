@@ -1,5 +1,6 @@
 /**
- * Created by john on 6/4/16.
+ * Created on 2016-06-04.
+ * Collaborators : Jonathan Girard, Kim Sang Ly, Yannick Jacques.
  */
 var Bot = require('slackbots');
 var getphoto = require('./getphoto.js');
@@ -14,7 +15,6 @@ var settings = {
     token: 'xoxb-48208002487-TnZqostisHVuCgFoWyDP3nvS',
     name: 'syov'
 };
-
 
 //Exemple console.log( channels.getChannelById({id:'C1E6AUVK3'}));
 Array.prototype.getByProps = function (obj) {
@@ -129,7 +129,6 @@ function apiVacation(data) {
         var dest = findValue(textArr, "-w");
         var date = findValue(textArr, "-d");
         if (textArr[1]) {
-
             if (textArr[1] == 'over') {
                 removeVacation(data.user);
                 confirmationMessage = "You are no longer on vacation. Welcome back!";
@@ -162,7 +161,7 @@ function apiVacation(data) {
 
 
 function findValue(args, param) {
-
+    console.log("findValue");
     var id = args.indexOf(param);
     //console.log("ID = " + id + " L = " + args.length);
     if (id > -1 && args.length >= id + 1) {
@@ -173,7 +172,20 @@ function findValue(args, param) {
                 return dateArr[0] + "-" + parseInt(dateArr[1]) + "-" + parseInt(dateArr[2]);
             }
         }
-        return args[id + 1];
+        else if(param === "-w") {
+            var destination = "";
+
+            for(var i=(id + 1); args.length>i && args[i].indexOf("-")<0 ; i++) {
+                console.log(args[i].indexOf("-")<0);
+                console.log(i + " " + args[i]);
+                destination += args[i] + " ";
+            }
+            console.log(destination);
+            return destination;
+        }
+        else {
+            return args[id + 1];
+        }
     }
     else {
         return null;
@@ -181,7 +193,6 @@ function findValue(args, param) {
 }
 
 function formatDate(date) {
-
     date = date.replace("/", "-");
     var comp = date.split('-');
 
@@ -191,11 +202,9 @@ function formatDate(date) {
     else {
         return false
     }
-
 }
 
 function getEmployeeOnVacation(data) {
-
     var message = "No user on vacation ";
     var channel = channels.getByProps({id: data.channel});
     if (users_in_vacation.length > 0) {

@@ -1,3 +1,7 @@
+/**
+ * Created on 2016-06-04.
+ * Collaborators : Jonathan Girard, Kim Sang Ly, Yannick Jacques.
+ */
 var exports = module.exports = {};
 
 exports.search = function (searchTerm, searchResult) {
