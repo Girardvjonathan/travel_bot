@@ -75,7 +75,7 @@ function verifyMention(data) {
                 var endDate = new Date(vacation_user[0].date);
                 message += ' until ' + endDate.getFullYear() + "-" + (endDate.getMonth() + 1) + "-" + endDate.getDate();
             }
-            if(vacation_user[0].dest !== 'null' || vacation_user[0].dest !== 'undefined') {
+            if(vacation_user[0].dest.toLowerCase() !== 'null' || vacation_user[0].dest.toLowerCase() !== 'undefined') {
                 var destination = vacation_user[0].dest.toLowerCase().replace(/\b[a-z]/g, function(letter) {
                     return letter.toUpperCase();
                 });
@@ -128,6 +128,11 @@ function apiVacation(data) {
     try {
         var dest = findValue(textArr, "-w");
         var date = findValue(textArr, "-d");
+        var endDate;
+        if(date) {
+
+        }
+        console.log(date);
         if (textArr[1]) {
             if (textArr[1] == 'over') {
                 removeVacation(data.user);
