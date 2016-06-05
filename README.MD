@@ -14,7 +14,9 @@ It helps remote teams to be aware who is on vacation, improve workflow and be in
 ### General
 Talk to the bot on private discussion to activate or deactivate vacation mode
 ### Documentation
-```help```
+```
+help
+```
 
 ```vacation help```
 
