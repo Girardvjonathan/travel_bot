@@ -162,7 +162,6 @@ function apiVacation(data) {
 
 
 function findValue(args, param) {
-
     var id = args.indexOf(param);
     //console.log("ID = " + id + " L = " + args.length);
     if (id > -1 && args.length >= id + 1) {
@@ -181,7 +180,6 @@ function findValue(args, param) {
 }
 
 function formatDate(date) {
-
     date = date.replace("/", "-");
     var comp = date.split('-');
 
@@ -195,7 +193,6 @@ function formatDate(date) {
 }
 
 function getEmployeeOnVacation(data) {
-
     var message = "No user on vacation ";
     var channel = channels.getByProps({id: data.channel});
     if (users_in_vacation.length > 0) {
