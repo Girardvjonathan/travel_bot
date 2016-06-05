@@ -2,6 +2,7 @@
  * Created by john on 6/4/16.
  */
 var Bot = require('slackbots');
+var getphoto = require('./getphoto.js');
 var sqlite3 = require('sqlite3').verbose();
 var db = new sqlite3.Database('vacation.db');
 var check;
@@ -25,13 +26,6 @@ Array.prototype.getByProps = function (obj) {
     });
 };
 
-function dbRead() {
-    db.all("SELECT * from user_vacation", function (err, rows) {
-        user_in_vacation = rows;
-        //console.log(user_in_vacation);
-    });
-}
-
 var bot = new Bot(settings);
 bot.on('start', function () {
     db.run("CREATE TABLE if not exists user_vacation (user TEXT PRIMARY KEY ASC, user_to TEXT, dest TEXT, date TEXT)");
@@ -46,6 +40,13 @@ bot.on('start', function () {
         //console.log(users);
     });
 });
+
+function dbRead() {
+    db.all("SELECT * from user_vacation", function (err, rows) {
+        user_in_vacation = rows;
+        //console.log(user_in_vacation);
+    });
+}
 
 function addVacation(user, userTo, dest, date) {
     db.run("INSERT OR REPLACE INTO user_vacation VALUES ('" + user + "','" + userTo + "','" + dest + "','" + date + "')");
@@ -68,13 +69,47 @@ function verifyMention(data) {
         //console.log("user_in_vacation" + vacation_user[0].name);
         if (vacation_user.length > 0) {
             //post @userTo User.name is in vacation maybe @UserTo.name can respond to you
-            message = 'Sorry ' + users.getByProps({id: vacation_user[0].user})[0].name + " is on vacation.";
-
-            if (vacation_user[0].user_to != "nobody") {
-                message += " Maybe <@"
-                    + users.getByProps({id: vacation_user[0].user_to})[0].id + "> can respond to you."
+            var messageParams = {};
+            message = 'Sorry, ' + users.getByProps({id: vacation_user[0].user})[0].name + " is on vacation";
+            if(vacation_user[0].date !== 'Invalid Date') {
+                var endDate = new Date(vacation_user[0].date);
+                message += ' until ' + endDate.getFullYear() + "-" + (endDate.getMonth() + 1) + "-" + endDate.getDate();
             }
-            bot.postMessageToChannel(channel[0].name, message);
+            if(vacation_user[0].dest !== 'null' || vacation_user[0].dest !== 'undefined') {
+                var destination = vacation_user[0].dest.toLowerCase().replace(/\b[a-z]/g, function(letter) {
+                    return letter.toUpperCase();
+                });
+                message += ' in ' + destination;
+
+                getphoto.search(destination, function(result) {
+                    if(result) {
+                        messageParams.attachments = [
+                            {
+                                "color": "#1CC6FF",
+                                "title": result.pageUrl,
+                                "title_link": result.pageUrl,
+                                "image_url": result.imageUrl
+                            }
+                        ];
+                    }
+                    message += '.';
+
+                    if (vacation_user[0].user_to != 'null') {
+                        message += " Maybe <@"
+                            + users.getByProps({id: vacation_user[0].user_to})[0].id + "> can respond to you."
+                    }
+                    bot.postMessageToChannel(channel[0].name, message, messageParams);
+                });
+            }
+            else {
+                message += '.';
+
+                if (vacation_user[0].user_to != 'null') {
+                    message += " Maybe <@"
+                        + users.getByProps({id: vacation_user[0].user_to})[0].id + "> can respond to you."
+                }
+                bot.postMessageToChannel(channel[0].name, message, messageParams);
+            }
         }
     }
 }
