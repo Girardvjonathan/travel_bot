@@ -4,6 +4,7 @@
  */
 var getphoto = require('./getphoto.js');
 var Bot = require('slackbots');
+var instaBot = require('./instabot')
 
 // create a bot
 var settings = {
