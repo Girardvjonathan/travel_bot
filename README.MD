@@ -32,5 +32,6 @@ On every channel that the bot is part off, you can type
 * Infinite loop when two people in vacation set the other has fallback
 * More test if list is empty
 * Cannot edit one field without overriding the other fields
+* ?vacation quand personne dans la db
 
 ### TODO

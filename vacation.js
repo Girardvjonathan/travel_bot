@@ -11,8 +11,18 @@ var channels;
 var users;
 var users_in_vacation;
 
+fs = require('fs');
+var token;
+fs.readFile('./Token', 'utf8', function (err,data) {
+  if (err) {
+    return console.log(err);
+  }
+  token= data;
+});
+
+
 var settings = {
-    token: 'xoxb-48208002487-TnZqostisHVuCgFoWyDP3nvS',
+    token: token,
     name: 'syov'
 };
 
