@@ -167,10 +167,16 @@ function findValue(args, param) {
     //console.log("ID = " + id + " L = " + args.length);
     if (id > -1 && args.length >= id + 1) {
         //console.log("ARGGGGG = " + args[id + 1]);
-        return args[id + 1]
+        if(param === "-d") {
+            var dateArr = args[id + 1].split("-");
+            if(dateArr.length === 3) {
+                return dateArr[0] + "-" + parseInt(dateArr[1]) + "-" + parseInt(dateArr[2]);
+            }
+        }
+        return args[id + 1];
     }
     else {
-        return "undefined"
+        return null;
     }
 }
 
@@ -198,8 +204,12 @@ function getEmployeeOnVacation(data) {
             if (entry != 'undefined') {
                 user = users.getByProps({id: entry.user})[0].name;
                 //console.log(user);
-
-                message += " " + user + ",";
+                message += " " + user;
+                if(entry.date !== 'Invalid Date') {
+                    var endDate = new Date(entry.date);
+                    message += ' until ' + endDate.getFullYear() + "-" + (endDate.getMonth() + 1) + "-" + endDate.getDate();
+                }
+                message += ",";
             }
         });
     }
