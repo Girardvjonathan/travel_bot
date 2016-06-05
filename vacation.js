@@ -26,6 +26,13 @@ Array.prototype.getByProps = function (obj) {
     });
 };
 
+function dbRead() {
+    db.all("SELECT * from user_vacation", function (err, rows) {
+        user_in_vacation = rows;
+        //console.log(user_in_vacation);
+    });
+}
+
 var bot = new Bot(settings);
 bot.on('start', function () {
     db.run("CREATE TABLE if not exists user_vacation (user TEXT PRIMARY KEY ASC, user_to TEXT, dest TEXT, date TEXT)");
@@ -40,13 +47,6 @@ bot.on('start', function () {
         //console.log(users);
     });
 });
-
-function dbRead() {
-    db.all("SELECT * from user_vacation", function (err, rows) {
-        user_in_vacation = rows;
-        //console.log(user_in_vacation);
-    });
-}
 
 function addVacation(user, userTo, dest, date) {
     db.run("INSERT OR REPLACE INTO user_vacation VALUES ('" + user + "','" + userTo + "','" + dest + "','" + date + "')");
@@ -133,6 +133,7 @@ function apiVacation(data) {
             if (textArr[1] == 'over') {
                 removeVacation(data.user);
                 confirmationMessage = "You are no longer on vacation. Welcome back!";
+                bot.postMessageToChannel('general', users.getByProps({id: data.user})[0].name+" is no longer on vacation. Welcome back!");
             }
             else if (textArr[1].indexOf('@') > -1) {
                 textArr[1] = textArr[1].substring(textArr[1].indexOf('@') + 1, textArr[1].length - 1);
@@ -191,9 +192,9 @@ function getEmployeeOnVacation(data) {
 
     var message = "No user on vacation ";
     var channel = channels.getByProps({id: data.channel});
-    if (user_in_vacation.length > 0) {
+    if (users_in_vacation.length > 0) {
         message = "Theses users are on vacation: ";
-        user_in_vacation.forEach(function (entry) {
+        users_in_vacation.forEach(function (entry) {
             if (entry != 'undefined') {
                 user = users.getByProps({id: entry.user})[0].name;
                 //console.log(user);

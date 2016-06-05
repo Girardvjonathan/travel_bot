@@ -33,3 +33,8 @@ On every channel that the bot is part off, you can type
 * Sql injection
 * Infinite loop when two person in vacation set the other has fallback
 * More test if list are empty
+
+### TODO
+* notify of return from vacation [done]
+* update help fonction for date [done]
+* Integrate Photo on vacation with place [done]
