@@ -8,7 +8,7 @@ var db = new sqlite3.Database('vacation.db');
 var check;
 var channels;
 var users;
-var user_in_vacation;
+var users_in_vacation;
 
 var settings = {
     token: 'xoxb-48208002487-TnZqostisHVuCgFoWyDP3nvS',
@@ -28,8 +28,7 @@ Array.prototype.getByProps = function (obj) {
 
 function dbRead() {
     db.all("SELECT * from user_vacation", function (err, rows) {
-        user_in_vacation = rows;
-        //console.log(user_in_vacation);
+        users_in_vacation = rows;
     });
 }
 
@@ -65,8 +64,7 @@ function verifyMention(data) {
         post_user = data.user;
         //if user is in db user_vacation user column then ...
         //console.log('user_to' + user_to);
-        vacation_user = user_in_vacation.getByProps({user: user_to});
-        //console.log("user_in_vacation" + vacation_user[0].name);
+        vacation_user = users_in_vacation.getByProps({user: user_to});
         if (vacation_user.length > 0) {
             //post @userTo User.name is in vacation maybe @UserTo.name can respond to you
             var messageParams = {};
@@ -167,10 +165,16 @@ function findValue(args, param) {
     //console.log("ID = " + id + " L = " + args.length);
     if (id > -1 && args.length >= id + 1) {
         //console.log("ARGGGGG = " + args[id + 1]);
-        return args[id + 1]
+        if(param === "-d") {
+            var dateArr = args[id + 1].split("-");
+            if(dateArr.length === 3) {
+                return dateArr[0] + "-" + parseInt(dateArr[1]) + "-" + parseInt(dateArr[2]);
+            }
+        }
+        return args[id + 1];
     }
     else {
-        return "undefined"
+        return null;
     }
 }
 
@@ -198,8 +202,12 @@ function getEmployeeOnVacation(data) {
             if (entry != 'undefined') {
                 user = users.getByProps({id: entry.user})[0].name;
                 //console.log(user);
-
-                message += " " + user + ",";
+                message += " " + user;
+                if(entry.date !== 'Invalid Date') {
+                    var endDate = new Date(entry.date);
+                    message += ' until ' + endDate.getFullYear() + "-" + (endDate.getMonth() + 1) + "-" + endDate.getDate();
+                }
+                message += ",";
             }
         });
     }
