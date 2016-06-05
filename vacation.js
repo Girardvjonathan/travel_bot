@@ -28,7 +28,7 @@ Array.prototype.getByProps = function (obj) {
 function dbRead() {
     db.all("SELECT * from user_vacation", function (err, rows) {
         user_in_vacation = rows;
-        console.log(user_in_vacation);
+        //console.log(user_in_vacation);
     });
 }
 
@@ -48,7 +48,7 @@ bot.on('start', function () {
 });
 
 function addVacation(user, userTo, dest, date) {
-    db.run("INSERT OR REPLACE INTO INTO user_vacation VALUES ('" + user + "','" + userTo + "','" + dest + "','" + date + "')");
+    db.run("INSERT OR REPLACE INTO user_vacation VALUES ('" + user + "','" + userTo + "','" + dest + "','" + date + "')");
 }
 
 function removeVacation(user) {
@@ -83,12 +83,13 @@ function isPrivate(channel) {
     return channels.getByProps({id: channel}).length == 0;
 }
 
-function apiTravel(data) {
+function apiVacation(data) {
     // First check if its a private channel
     text = data.text;
     var user_to;
     var confirmationMessage;
     var textArr = text.split(" ");
+    //console.log(textArr);
     try {
         var dest = findValue(textArr, "-w");
         var date = findValue(textArr, "-d");
@@ -101,16 +102,21 @@ function apiTravel(data) {
             else if (textArr[1].indexOf('@') > -1) {
                 textArr[1] = textArr[1].substring(textArr[1].indexOf('@') + 1, textArr[1].length - 1);
                 user_to = users.getByProps({id: textArr[1]})[0].id;
-                confirmationMessage = "You are on vacation and <@" + user_to.id +
+                confirmationMessage = "You are on vacation and <@" + user_to +
                     "> is responding for you. Have fun!";
-                addVacation(data.user, user_to.id, dest, new Date(date).toString());
+                addVacation(data.user, user_to, dest, new Date(date).toString());
+            } else {
+                user_to = null;
+                confirmationMessage = "You are on vacation. Have fun!";
+                addVacation(data.user, user_to, dest, new Date(date).toString());
             }
         }
         else {
             user_to = null;
             confirmationMessage = "You are on vacation. Have fun!";
-            addVacation(data.user, user_to.id, dest, new Date(date).toString());
+            addVacation(data.user, user_to, dest, new Date(date).toString());
         }
+        bot.postMessageToUser(users.getByProps({id: data.user})[0].name, confirmationMessage);
         dbRead();
     }
     catch
@@ -122,9 +128,9 @@ function apiTravel(data) {
 function findValue(args, param) {
 
     var id = args.indexOf(param);
-    console.log("ID = " + id + " L = " + args.length);
+    //console.log("ID = " + id + " L = " + args.length);
     if (id > -1 && args.length >= id + 1) {
-        console.log("ARGGGGG = " + args[id + 1]);
+        //console.log("ARGGGGG = " + args[id + 1]);
         return args[id + 1]
     }
     else {
@@ -147,21 +153,27 @@ function formatDate(date) {
 }
 
 function getEmployeeOnVacation(data) {
+
     var message = "No user on vacation ";
-    var channel = channels.getByProps({id: data.channel})[0];
-    console.log(user_in_vacation);
+    var channel = channels.getByProps({id: data.channel});
     if (user_in_vacation.length > 0) {
         message = "Theses users are on vacation: ";
         user_in_vacation.forEach(function (entry) {
             if (entry != 'undefined') {
                 user = users.getByProps({id: entry.user})[0].name;
+                //console.log(user);
+
                 message += " " + user + ",";
             }
         });
     }
     //    TODO si date marquer until date
-    bot.postMessageToChannel(channel.name, message.substring(0, message.length - 1));
-
+    //            console.log(channel);
+    if (channel.length > 0) {
+        bot.postMessageToChannel(channel[0].name, message.substring(0, message.length - 1));
+    } else {
+        bot.postMessageToUser(users.getByProps({id: data.user})[0].name, message.substring(0, message.length - 1));
+    }
 }
 
 function helpInfo(data) {
@@ -183,15 +195,16 @@ bot.on('message', function (data) {
         //console.log(data);
         verifyMention(data);
         var textArr = data.text.split(" ");
+        //console.log(textArr);
         if (textArr[0].toLowerCase() === 'help' ||
-            (textArr[0].toLowerCase() === 'vacation' && textArr[1].toLowerCase() === 'help')) {
+            (textArr[0].toLowerCase() === 'vacation' && textArr[1] && textArr[1].toLowerCase() === 'help')) {
             if (isPrivate(data.channel)) {
                 helpInfo(data);
             }
         }
         if (textArr[0].toLowerCase() === 'vacation') {
             if (isPrivate(data.channel)) {
-                apiTravel(data);
+                apiVacation(data);
             }
         }
         if (textArr[0].toLowerCase() === '?vacation' ||
