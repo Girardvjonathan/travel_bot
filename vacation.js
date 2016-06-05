@@ -226,11 +226,20 @@ bot.on('message', function (data) {
     // all ingoing events https://api.slack.com/rtm
     //console.log(data.type);
 
-    if (data.type == 'message') {
-        //console.log(data);
+    //console.log(data);
 
-        // Check if a mention has been made if so, if the user is on vacation
-        //console.log(data);
+    // Check if a mention has been made if so, if the user is on vacation
+    //console.log(data);
+    if(data.type == "presence_change") {
+        if(data.presence == 'active') {
+            user = user_in_vacation.getByProps({user: data.user});
+            if(user.length>0) {
+                bot.postMessageToUser(users.getByProps({id: user[0].user})[0].name, "You are still on vacation. If they are over, you can end them with " +
+                    "\n>vacation over");
+            }
+        }
+    }
+    if (data.type == 'message') {
         verifyMention(data);
         var textArr = data.text.split(" ");
         //console.log(textArr);
