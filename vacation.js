@@ -8,7 +8,7 @@ var db = new sqlite3.Database('vacation.db');
 var check;
 var channels;
 var users;
-var user_in_vacation;
+var users_in_vacation;
 
 var settings = {
     token: 'xoxb-48208002487-TnZqostisHVuCgFoWyDP3nvS',
@@ -28,8 +28,8 @@ Array.prototype.getByProps = function (obj) {
 
 function dbRead() {
     db.all("SELECT * from user_vacation", function (err, rows) {
-        user_in_vacation = rows;
-        //console.log(user_in_vacation);
+        users_in_vacation = rows;
+        //console.log(users_in_vacation);
     });
 }
 
@@ -65,8 +65,8 @@ function verifyMention(data) {
         post_user = data.user;
         //if user is in db user_vacation user column then ...
         //console.log('user_to' + user_to);
-        vacation_user = user_in_vacation.getByProps({user: user_to});
-        //console.log("user_in_vacation" + vacation_user[0].name);
+        vacation_user = users_in_vacation.getByProps({user: user_to});
+        //console.log("users_in_vacation" + vacation_user[0].name);
         if (vacation_user.length > 0) {
             //post @userTo User.name is in vacation maybe @UserTo.name can respond to you
             var messageParams = {};
@@ -232,7 +232,7 @@ bot.on('message', function (data) {
     //console.log(data);
     if(data.type == "presence_change") {
         if(data.presence == 'active') {
-            user = user_in_vacation.getByProps({user: data.user});
+            user = users_in_vacation.getByProps({user: data.user});
             if(user.length>0) {
                 bot.postMessageToUser(users.getByProps({id: user[0].user})[0].name, "You are still on vacation. If they are over, you can end them with " +
                     "\n>vacation over");
