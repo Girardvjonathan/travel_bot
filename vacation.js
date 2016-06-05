@@ -81,7 +81,7 @@ function verifyMention(data) {
                 });
                 message += ' in ' + destination;
 
-                getphoto.search(destination, function(result) {
+                getphoto.search(destination + ' landscape', function(result) {
                     if(result) {
                         messageParams.attachments = [
                             {
