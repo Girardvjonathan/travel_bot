@@ -161,7 +161,6 @@ function apiVacation(data) {
 
 
 function findValue(args, param) {
-    console.log("findValue");
     var id = args.indexOf(param);
     //console.log("ID = " + id + " L = " + args.length);
     if (id > -1 && args.length >= id + 1) {
@@ -176,8 +175,6 @@ function findValue(args, param) {
             var destination = "";
 
             for(var i=(id + 1); args.length>i && args[i].indexOf("-")<0 ; i++) {
-                console.log(args[i].indexOf("-")<0);
-                console.log(i + " " + args[i]);
                 destination += args[i] + " ";
             }
             console.log(destination);
